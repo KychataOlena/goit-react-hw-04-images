@@ -10,10 +10,8 @@ export class Modal extends Component {
     onClickL: PropTypes.string.isRequired,
     onClose: PropTypes.func.isRequired,
   };
-  componentDidMount() {
-    // console.log('Modal componentDidMount');
-    console.log(this.props.largeImageURL);
 
+  componentDidMount() {
     window.addEventListener('keydown', this.handleKeyDown);
   }
 

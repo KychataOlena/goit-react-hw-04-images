@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -11,92 +11,79 @@ import { Loader } from 'components/Loader/Loader';
 
 const API_KEY = '33394453-d5a8c72f7be6b764d04762919';
 
-export class App extends Component {
-  state = {
-    searchName: '',
-    page: 1,
-    items: [],
-    loading: false,
-    showModal: false,
-    modalImg: '',
+// const fetchImage = ({ searchName ='', page=1 })=>{
+//   return
+//    .get( ` https://pixabay.com/api/?q=${searchName}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`),
+
+//   .then(res => res.json())
+// };
+
+export function App() {
+  const [searchName, setSearchName] = useState('');
+  const [page, setPage] = useState(1);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalImg, setModalImg] = useState('');
+
+  const handleSubmit = e => {
+    setSearchName(e);
+    setPage(1);
   };
 
-  handleSubmit = searchName => {
-    this.setState({ searchName });
-    this.setState({ page: 1 });
+  const loadMore = () => {
+    setPage(prevPage => prevPage + 1);
   };
 
-  loadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
-  };
-
-  componentDidUpdate(_, prevState) {
-    const { page, searchName } = this.state;
-
-    if (prevState.page !== page || prevState.searchName !== searchName) {
-      this.setState({ loading: true });
-
-      fetch(
-        ` https://pixabay.com/api/?q=${searchName}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
-      )
-        .then(res => res.json())
-        .then(items => {
-          const ApiArray = items.hits;
-          // console.log(ApiArray.largeImageURL);
-          if (page === 1) {
-            this.setState({ items: ApiArray });
-          } else {
-            this.setState(prevState => ({
-              items: [...prevState.items, ...ApiArray],
-            }));
-          }
-        })
-        .finally(() => this.setState({ loading: false }));
+  useEffect(() => {
+    if (searchName === '') {
+      return;
     }
-  }
 
-  toggleModal = largeImageURL => {
-    this.setState(({ showModal, modalImg }) => ({
-      showModal: !showModal,
-      modalImg: largeImageURL,
-    }));
+    setLoading(true);
+    fetch(
+      ` https://pixabay.com/api/?q=${searchName}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
+    )
+      .then(res => res.json())
+      .then(items => {
+        const ApiArray = items.hits;
+        // console.log(ApiArray.largeImageURL);
+        if (page === 1) {
+          setItems(ApiArray);
+        } else {
+          setItems(prevState => [...prevState, ...ApiArray]);
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [page, searchName]);
+
+  const toggleModal = largeImageURL => {
+    setModalImg(largeImageURL);
+    setShowModal(!showModal);
   };
 
-  // selectesImg = largeImageURL => {
-  //   this.setState({
-  //     modalImg: largeImageURL,
-  //   });
-  // };
-
-  render() {
-    const { items, loading, showModal, modalImg } = this.state;
-    console.log(items.length > 11);
-
-    return (
-      <Wrapper>
-        <Searchbar onSubmit={this.handleSubmit} />
-
-        {items && (
-          <ImageGallery
-            onClick={this.toggleModal}
-            items={items}
-            // selectesImg={this.selectesImg}
-          />
-        )}
-        {showModal && (
-          <Modal
-            onClose={this.toggleModal}
-            onClick={modalImg}
-            // largeImageURL={items.largeImageURL}
-          />
-        )}
-
-        <ToastContainer autoClose={3000} theme="colored" />
-        {loading && <Loader />}
-        {items.length > 11 && <Button onLoadMore={this.loadMore} />}
-      </Wrapper>
-    );
-  }
+  return (
+    <Wrapper>
+      <Searchbar onSubmit={handleSubmit} />
+      {items.length > 0 && (
+        <ImageGallery
+          onClick={toggleModal}
+          items={items}
+          // selectesImg={selectesImg}
+        />
+      )}
+      {showModal && (
+        <Modal
+          onClose={toggleModal}
+          onClick={modalImg}
+          // largeImageURL={items.largeImageURL}
+        />
+      )}
+      <ToastContainer autoClose={3000} theme="colored" />
+      {loading && <Loader />}
+      {items.length > 11 && <Button onLoadMore={loadMore} />}
+    </Wrapper>
+  );
 }

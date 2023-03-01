@@ -3,6 +3,7 @@ import { ImageGalleryList } from '../ImageGallery/ImageGallery.styled';
 import { ImageGalleryItem } from '../ImageGalleryItem/ImageGalleryItem';
 
 export const ImageGallery = ({ items, onClick }) => {
+  // console.log(items);
   return (
     <ImageGalleryList>
       {items.map(({ id, webformatURL, largeImageURL }) => (
